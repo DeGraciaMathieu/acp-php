@@ -8,3 +8,4 @@
 /phpunit.xml.dist   export-ignore
 
 /src/Schema/**      linguist-generated=true
+/examples          export-ignore
