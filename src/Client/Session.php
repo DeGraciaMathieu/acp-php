@@ -121,6 +121,11 @@ final class Session
             new SetSessionModeRequest(sessionId: $this->id, modeId: $modeId),
             $cancellation,
         );
+
+        // Agents are not required to confirm with a current_mode_update notification.
+        if ($this->modes !== null) {
+            $this->modes = new SessionModeState($modeId, $this->modes->availableModes, $this->modes->meta);
+        }
     }
 
     /**
