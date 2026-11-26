@@ -1,6 +1,6 @@
 <?php
 
-// Resumes a session created by 02-claude.php.
+// Resumes a Claude session created by 02-agent.php.
 //   php examples/03-resume.php <dir> <session-id> "<prompt>"
 
 declare(strict_types=1);
