@@ -1,0 +1,52 @@
+{
+    "name": "degraciamathieu/acp-php",
+    "description": "PHP SDK for the Agent Client Protocol (ACP): drive coding agents like Claude Code, Codex or Gemini CLI from PHP.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "acp",
+        "agent-client-protocol",
+        "ai",
+        "agents",
+        "claude-code",
+        "json-rpc"
+    ],
+    "authors": [
+        {
+            "name": "Mathieu De Gracia"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "amphp/amp": "^3.1",
+        "amphp/byte-stream": "^2.1",
+        "amphp/process": "^2.0",
+        "revolt/event-loop": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "phpstan/phpstan": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Acp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Acp\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "generate": "@php bin/generate-schema.php",
+        "check-schema": "@php bin/generate-schema.php --check",
+        "test": "phpunit",
+        "analyse": "phpstan analyse",
+        "update-schema": "@php bin/update-schema.php"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable"
+}

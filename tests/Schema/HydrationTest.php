@@ -1,0 +1,159 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Acp\Tests\Schema;
+
+use Acp\Exception\InvalidPayload;
+use Acp\Schema;
+use Acp\Schema\ContentBlock\TextContent;
+use Acp\Schema\SessionUpdate;
+use PHPUnit\Framework\TestCase;
+
+final class HydrationTest extends TestCase
+{
+    public function test_tagged_unions_resolve_to_their_variant(): void
+    {
+        $notification = Schema\SessionNotification::fromArray([
+            'sessionId' => 'sess_1',
+            'update' => ['sessionUpdate' => 'agent_message_chunk', 'content' => ['type' => 'text', 'text' => 'Salut']],
+        ]);
+
+        self::assertInstanceOf(SessionUpdate\AgentMessageChunk::class, $notification->update);
+        self::assertInstanceOf(TextContent::class, $notification->update->content);
+        self::assertSame('Salut', $notification->update->content->text);
+    }
+
+    public function test_known_enum_values_become_cases(): void
+    {
+        $response = Schema\PromptResponse::fromArray(['stopReason' => 'cancelled']);
+
+        self::assertSame(Schema\StopReason::Cancelled, $response->stopReason);
+    }
+
+    public function test_unknown_enum_values_are_kept_raw(): void
+    {
+        $response = Schema\PromptResponse::fromArray(['stopReason' => 'budget_exceeded']);
+
+        self::assertSame('budget_exceeded', $response->stopReason);
+        self::assertSame('{"stopReason":"budget_exceeded"}', json_encode($response));
+    }
+
+    public function test_unknown_variants_are_kept_raw(): void
+    {
+        $payload = ['sessionUpdate' => 'telemetry_v3', 'cpu' => 0.4, 'nested' => ['a' => 1]];
+
+        $update = SessionUpdate::fromArray($payload);
+
+        self::assertInstanceOf(SessionUpdate\Unrecognized::class, $update);
+        self::assertSame('telemetry_v3', $update->tag());
+        self::assertSame($payload, $update->data);
+        self::assertSame($payload, json_decode((string) json_encode($update), true));
+    }
+
+    public function test_untagged_unions_resolve_by_shape(): void
+    {
+        $text = Schema\EmbeddedResourceResource::fromArray(['uri' => 'file:///a.md', 'text' => '# A']);
+        $blob = Schema\EmbeddedResourceResource::fromArray(['uri' => 'file:///a.png', 'blob' => 'iVBORw0K']);
+
+        self::assertInstanceOf(Schema\EmbeddedResourceResource\TextResourceContents::class, $text);
+        self::assertInstanceOf(Schema\EmbeddedResourceResource\BlobResourceContents::class, $blob);
+    }
+
+    public function test_a_missing_tag_falls_back_to_the_default_variant(): void
+    {
+        $server = Schema\McpServer::fromArray(['name' => 'etabli', 'command' => 'php', 'args' => [], 'env' => []]);
+
+        self::assertInstanceOf(Schema\McpServer\Stdio::class, $server);
+        self::assertArrayNotHasKey('type', (array) $server->jsonSerialize());
+    }
+
+    public function test_a_missing_required_field_reports_its_path(): void
+    {
+        try {
+            Schema\SessionNotification::fromArray([
+                'sessionId' => 'sess_1',
+                'update' => ['sessionUpdate' => 'agent_message_chunk'],
+            ]);
+            self::fail('An exception was expected.');
+        } catch (InvalidPayload $e) {
+            self::assertSame('update.content', $e->path());
+        }
+    }
+
+    public function test_a_wrong_type_inside_a_list_reports_its_index(): void
+    {
+        try {
+            Schema\PromptRequest::fromArray([
+                'sessionId' => 'sess_1',
+                'prompt' => [['type' => 'text', 'text' => 'ok'], ['type' => 'text', 'text' => 42]],
+            ]);
+            self::fail('An exception was expected.');
+        } catch (InvalidPayload $e) {
+            self::assertSame('prompt[1].text', $e->path());
+            self::assertStringContainsString('expected string, got int', $e->getMessage());
+        }
+    }
+
+    public function test_lenient_fields_fall_back_to_their_default_on_invalid_values(): void
+    {
+        $chunk = SessionUpdate\AgentMessageChunk::fromArray([
+            'content' => ['type' => 'text', 'text' => 'Salut'],
+            'messageId' => ['not', 'a', 'string'],
+        ]);
+
+        self::assertNull($chunk->messageId);
+    }
+
+    public function test_invalid_list_items_are_skipped_when_the_schema_allows_it(): void
+    {
+        $update = SessionUpdate\ToolCallUpdate::fromArray([
+            'toolCallId' => 'call_1',
+            'content' => [
+                ['type' => 'content', 'content' => ['type' => 'text', 'text' => 'ok']],
+                ['type' => 'diff'],
+            ],
+        ]);
+
+        self::assertCount(1, $update->content ?? []);
+    }
+
+    public function test_schema_defaults_are_applied_when_fields_are_missing(): void
+    {
+        $response = Schema\InitializeResponse::fromArray(['protocolVersion' => 1]);
+
+        self::assertNotNull($response->agentCapabilities);
+        self::assertFalse($response->agentCapabilities->loadSession);
+        self::assertNotNull($response->agentCapabilities->promptCapabilities);
+        self::assertFalse($response->agentCapabilities->promptCapabilities->image);
+        self::assertSame([], $response->authMethods);
+    }
+
+    public function test_empty_objects_stay_objects(): void
+    {
+        self::assertSame('{}', json_encode(Schema\AuthenticateResponse::fromArray([])));
+        self::assertSame('{"stopReason":"end_turn","_meta":{}}', json_encode(new Schema\PromptResponse(Schema\StopReason::EndTurn, meta: [])));
+    }
+
+    public function test_objects_can_be_built_by_hand(): void
+    {
+        $request = new Schema\PromptRequest(
+            sessionId: 'sess_1',
+            prompt: [new TextContent('Passe le thème en sombre')],
+        );
+
+        self::assertSame(
+            '{"sessionId":"sess_1","prompt":[{"type":"text","text":"Passe le thème en sombre"}]}',
+            json_encode($request, JSON_UNESCAPED_UNICODE),
+        );
+    }
+
+    public function test_methods_know_their_params_and_result_classes(): void
+    {
+        self::assertSame(Schema\PromptRequest::class, Schema\AgentMethod::SessionPrompt->paramsClass());
+        self::assertSame(Schema\PromptResponse::class, Schema\AgentMethod::SessionPrompt->resultClass());
+        self::assertTrue(Schema\AgentMethod::SessionCancel->isNotification());
+        self::assertTrue(Schema\ClientMethod::SessionUpdate->isNotification());
+        self::assertSame(Schema\RequestPermissionRequest::class, Schema\ClientMethod::from('session/request_permission')->paramsClass());
+    }
+}
