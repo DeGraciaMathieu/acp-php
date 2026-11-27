@@ -42,6 +42,8 @@
         "generate": "@php bin/generate-schema.php",
         "check-schema": "@php bin/generate-schema.php --check",
         "test": "phpunit",
+        "test:feature": "phpunit --testsuite feature",
+        "test:contract": "phpunit --testsuite contract",
         "analyse": "phpstan analyse",
         "update-schema": "@php bin/update-schema.php"
     },
