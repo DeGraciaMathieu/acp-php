@@ -20,7 +20,7 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
-$check = in_array('--check', $argv, true);
+$check = in_array('--check', $_SERVER['argv'] ?? [], true);
 $schemaDir = $root . '/resources/schema/v1';
 
 $schema = json_decode((string) file_get_contents($schemaDir . '/schema.json'), true, flags: JSON_THROW_ON_ERROR);
