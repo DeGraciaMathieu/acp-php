@@ -19,6 +19,18 @@ if ($mode === 'crash') {
     exit(3);
 }
 
+if ($mode === 'hang') {
+    sleep(30);
+    exit(0);
+}
+
+if ($mode === 'noisy') {
+    for ($i = 1; $i <= 250; $i++) {
+        fwrite(STDERR, "line {$i}\n");
+    }
+    exit(0);
+}
+
 FakeAgent::create()
     ->onPrompt(function (FakeTurn $turn): null {
         fwrite(STDERR, 'prompt: ' . $turn->prompt() . "\n");
