@@ -6,13 +6,21 @@
          failOnRisky="true"
          failOnWarning="true">
     <testsuites>
-        <testsuite name="acp-php">
-            <directory>tests</directory>
+        <!-- Use cases, through the public API -->
+        <testsuite name="feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <!-- Guards the generated src/Schema against the bundled JSON schema -->
+        <testsuite name="contract">
+            <directory>tests/Contract</directory>
         </testsuite>
     </testsuites>
     <source>
         <include>
             <directory>src</directory>
         </include>
+        <exclude>
+            <directory>src/Schema</directory>
+        </exclude>
     </source>
 </phpunit>

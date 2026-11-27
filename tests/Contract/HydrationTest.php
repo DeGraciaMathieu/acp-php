@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Acp\Tests\Schema;
+namespace Acp\Tests\Contract;
 
 use Acp\Exception\InvalidPayload;
 use Acp\Schema;

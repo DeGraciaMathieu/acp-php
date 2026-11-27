@@ -172,7 +172,9 @@ Invalid payloads throw `Acp\Exception\InvalidPayload` with the full path of the 
 
 ```bash
 composer install
-composer test           # PHPUnit
+composer test           # PHPUnit, both suites
+composer test:feature   # use cases, through the public API
+composer test:contract  # generated src/Schema against the JSON schema
 composer analyse        # PHPStan
 composer check-schema   # fails if src/Schema is out of date
 ```
