@@ -7,6 +7,8 @@ namespace Acp;
 use Acp\Client\ClientConnection;
 use Acp\Client\FileSystemHandler;
 use Acp\Client\PermissionHandler;
+use Acp\Rpc\Direction;
+use Acp\Rpc\ObservedTransport;
 use Acp\Rpc\StdioTransport;
 use Acp\Schema\Implementation;
 use Amp\CancelledException;
@@ -99,18 +101,22 @@ final class AgentProcess
      * @param PermissionHandler|null $permissions Defaults to rejecting every request.
      * @param FileSystemHandler|null $fileSystem When given, the agent reads and writes files through it.
      * @param Closure(Throwable): void|null $onError Protocol errors that cannot be reported to the agent.
+     * @param (callable(Direction, string): void)|null $onMessage Sees every raw message, e.g. a Dumper.
      */
     public function connect(
         ?PermissionHandler $permissions = null,
         ?FileSystemHandler $fileSystem = null,
         ?Implementation $clientInfo = null,
         ?Closure $onError = null,
+        ?callable $onMessage = null,
     ): ClientConnection {
         if ($this->client !== null) {
             throw new \LogicException('This agent process is already connected.');
         }
 
-        return $this->client = new ClientConnection($this->transport, $permissions, $fileSystem, $clientInfo, $onError);
+        $transport = $onMessage === null ? $this->transport : new ObservedTransport($this->transport, $onMessage(...));
+
+        return $this->client = new ClientConnection($transport, $permissions, $fileSystem, $clientInfo, $onError);
     }
 
     public function pid(): int

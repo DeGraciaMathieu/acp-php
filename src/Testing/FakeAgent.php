@@ -9,7 +9,9 @@ use Acp\Client\FileSystemHandler;
 use Acp\Client\PermissionHandler;
 use Acp\Exception\RpcError;
 use Acp\Rpc\Connection;
+use Acp\Rpc\Direction;
 use Acp\Rpc\InMemoryTransport;
+use Acp\Rpc\ObservedTransport;
 use Acp\Rpc\StdioTransport;
 use Acp\Rpc\Transport;
 use Acp\Schema\AgentCapabilities;
@@ -140,16 +142,19 @@ final class FakeAgent
      * Connects a client to this agent, in memory.
      *
      * @param Closure(\Throwable): void|null $onError
+     * @param (callable(Direction, string): void)|null $onMessage Sees every raw message on the client side, e.g. a Dumper.
      */
     public function connect(
         ?PermissionHandler $permissions = null,
         ?FileSystemHandler $fileSystem = null,
         ?Closure $onError = null,
+        ?callable $onMessage = null,
     ): ClientConnection {
         [$clientSide, $agentSide] = InMemoryTransport::pair();
         $this->serve($agentSide);
+        $transport = $onMessage === null ? $clientSide : new ObservedTransport($clientSide, $onMessage(...));
 
-        return new ClientConnection($clientSide, $permissions, $fileSystem, onError: $onError);
+        return new ClientConnection($transport, $permissions, $fileSystem, onError: $onError);
     }
 
     /**
