@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Acp\Tests;
+namespace Acp\Tests\Feature;
 
 use Acp\AgentProcess;
 use Acp\Exception\ConnectionClosed;
@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 final class AgentProcessTest extends TestCase
 {
-    private const SCRIPT = __DIR__ . '/Fixtures/fake-agent.php';
+    private const SCRIPT = __DIR__ . '/../Fixtures/fake-agent.php';
 
     #[Test]
     public function a_real_agent_subprocess_over_stdio(): void
@@ -79,5 +79,42 @@ final class AgentProcessTest extends TestCase
 
         self::assertSame(3, $agent->wait());
         self::assertContains('fatal: missing credentials', $agent->stderr());
+    }
+
+    #[Test]
+    public function an_agent_process_is_connected_only_once(): void
+    {
+        $agent = AgentProcess::start(PHP_BINARY, [self::SCRIPT]);
+        $agent->connect();
+
+        $this->expectException(\LogicException::class);
+        try {
+            $agent->connect();
+        } finally {
+            $agent->stop();
+        }
+    }
+
+    #[Test]
+    public function an_agent_that_does_not_exit_is_killed_on_stop(): void
+    {
+        $agent = AgentProcess::start(PHP_BINARY, [self::SCRIPT, 'hang']);
+
+        $agent->stop(timeout: 0.2);
+
+        self::assertFalse($agent->isRunning());
+    }
+
+    #[Test]
+    public function only_the_last_stderr_lines_are_kept(): void
+    {
+        $agent = AgentProcess::start(PHP_BINARY, [self::SCRIPT, 'noisy']);
+
+        $agent->wait();
+
+        $stderr = $agent->stderr();
+        self::assertCount(200, $stderr);
+        self::assertSame('line 51', $stderr[0]);
+        self::assertSame('line 250', $stderr[199]);
     }
 }
