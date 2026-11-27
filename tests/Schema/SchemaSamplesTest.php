@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Acp\Tests\Schema;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -46,8 +47,9 @@ final class SchemaSamplesTest extends TestCase
      * @param class-string $class
      * @param array<string, mixed> $sample
      */
+    #[Test]
     #[DataProvider('definitions')]
-    public function test_every_definition_round_trips(string $class, array $sample): void
+    public function every_definition_round_trips(string $class, array $sample): void
     {
         $object = $class::fromArray($sample);
         self::assertFalse(str_ends_with($object::class, '\\Unrecognized'), 'A known variant was not recognized: ' . json_encode($sample));

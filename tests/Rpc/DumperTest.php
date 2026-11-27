@@ -7,25 +7,29 @@ namespace Acp\Tests\Rpc;
 use Acp\Rpc\Direction;
 use Acp\Rpc\Dumper;
 use Acp\Testing\FakeAgent;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class DumperTest extends TestCase
 {
-    public function test_a_request_shows_its_id_method_and_params(): void
+    #[Test]
+    public function a_request_shows_its_id_method_and_params(): void
     {
         $line = (new Dumper())->format(Direction::Sent, '{"jsonrpc":"2.0","id":3,"method":"session/prompt","params":{"sessionId":"s1"}}');
 
         self::assertSame('→ #3 session/prompt {"sessionId":"s1"}', $line);
     }
 
-    public function test_a_notification_has_no_id(): void
+    #[Test]
+    public function a_notification_has_no_id(): void
     {
         $line = (new Dumper())->format(Direction::Received, '{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"s1"}}');
 
         self::assertSame('← session/update {"sessionId":"s1"}', $line);
     }
 
-    public function test_responses_show_their_result_or_error(): void
+    #[Test]
+    public function responses_show_their_result_or_error(): void
     {
         $dumper = new Dumper();
 
@@ -33,12 +37,14 @@ final class DumperTest extends TestCase
         self::assertSame('← #4 error {"code":-32000,"message":"Authentication required"}', $dumper->format(Direction::Received, '{"jsonrpc":"2.0","id":4,"error":{"code":-32000,"message":"Authentication required"}}'));
     }
 
-    public function test_invalid_json_is_printed_as_is(): void
+    #[Test]
+    public function invalid_json_is_printed_as_is(): void
     {
         self::assertSame('← not json', (new Dumper())->format(Direction::Received, 'not json'));
     }
 
-    public function test_it_writes_one_line_per_message_exchanged_by_the_client(): void
+    #[Test]
+    public function it_writes_one_line_per_message_exchanged_by_the_client(): void
     {
         $stream = fopen('php://memory', 'w+');
         self::assertIsResource($stream);

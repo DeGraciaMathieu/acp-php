@@ -13,20 +13,23 @@ use Amp\Cancellation;
 use Amp\CancelledException;
 use Amp\DeferredCancellation;
 use Amp\DeferredFuture;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function Amp\delay;
 
 final class ConnectionTest extends TestCase
 {
-    public function test_a_request_gets_its_result(): void
+    #[Test]
+    public function a_request_gets_its_result(): void
     {
         [$client] = $this->pair(fn (string $method, array $params): array => ['echo' => $params['value']]);
 
         self::assertSame(['echo' => 42], $client->request('echo', ['value' => 42]));
     }
 
-    public function test_an_error_response_becomes_an_exception(): void
+    #[Test]
+    public function an_error_response_becomes_an_exception(): void
     {
         [$client] = $this->pair(fn () => throw new RpcError(-32000, 'Authentication required', ['hint' => 'login']));
 
@@ -40,7 +43,8 @@ final class ConnectionTest extends TestCase
         }
     }
 
-    public function test_unexpected_handler_failures_become_internal_errors(): void
+    #[Test]
+    public function unexpected_handler_failures_become_internal_errors(): void
     {
         [$client] = $this->pair(fn () => throw new \RuntimeException('boom'));
 
@@ -53,7 +57,8 @@ final class ConnectionTest extends TestCase
         }
     }
 
-    public function test_notifications_arrive_in_order(): void
+    #[Test]
+    public function notifications_arrive_in_order(): void
     {
         $received = [];
         [$client] = $this->pair(
@@ -71,7 +76,8 @@ final class ConnectionTest extends TestCase
         self::assertSame(range(1, 20), $received);
     }
 
-    public function test_requests_are_handled_concurrently(): void
+    #[Test]
+    public function requests_are_handled_concurrently(): void
     {
         $release = new DeferredFuture();
         [$client] = $this->pair(function (string $method) use ($release): string {
@@ -89,7 +95,8 @@ final class ConnectionTest extends TestCase
         self::assertSame('slow', $slow->await());
     }
 
-    public function test_cancelling_a_request_tells_the_peer(): void
+    #[Test]
+    public function cancelling_a_request_tells_the_peer(): void
     {
         $handlerCancelled = new DeferredFuture();
         [$client] = $this->pair(function (string $method, array $params, Cancellation $cancellation) use ($handlerCancelled): null {
@@ -117,7 +124,8 @@ final class ConnectionTest extends TestCase
         self::assertTrue($handlerCancelled->getFuture()->await());
     }
 
-    public function test_pending_requests_fail_when_the_connection_closes(): void
+    #[Test]
+    public function pending_requests_fail_when_the_connection_closes(): void
     {
         [$client, $server] = $this->pair(function () use (&$server): null {
             $server->close();
@@ -129,7 +137,8 @@ final class ConnectionTest extends TestCase
         $client->request('anything', []);
     }
 
-    public function test_unparsable_messages_are_answered_with_a_parse_error(): void
+    #[Test]
+    public function unparsable_messages_are_answered_with_a_parse_error(): void
     {
         [$a, $b] = InMemoryTransport::pair();
         $errors = [];
@@ -146,7 +155,8 @@ final class ConnectionTest extends TestCase
         self::assertCount(1, $errors);
     }
 
-    public function test_empty_params_are_sent_as_an_object(): void
+    #[Test]
+    public function empty_params_are_sent_as_an_object(): void
     {
         [$a, $b] = InMemoryTransport::pair();
         $client = new Connection($a, fn () => null, fn () => null);

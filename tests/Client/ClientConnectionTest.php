@@ -25,6 +25,7 @@ use Acp\Testing\FakeTurn;
 use Amp\Cancellation;
 use Amp\DeferredCancellation;
 use Amp\DeferredFuture;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function Amp\async;
@@ -32,7 +33,8 @@ use function Amp\delay;
 
 final class ClientConnectionTest extends TestCase
 {
-    public function test_a_full_prompt_turn(): void
+    #[Test]
+    public function a_full_prompt_turn(): void
     {
         $client = FakeAgent::create()
             ->onPrompt(function (FakeTurn $turn): StopReason {
@@ -70,7 +72,8 @@ final class ClientConnectionTest extends TestCase
         self::assertSame('Done: the theme is dark.', $turn->text());
     }
 
-    public function test_waiting_for_the_text_does_not_require_reading_updates(): void
+    #[Test]
+    public function waiting_for_the_text_does_not_require_reading_updates(): void
     {
         $client = FakeAgent::create()
             ->onPrompt(function (FakeTurn $turn): null {
@@ -87,7 +90,8 @@ final class ClientConnectionTest extends TestCase
         self::assertSame('You said: again', $session->prompt([new TextContent('again')])->text());
     }
 
-    public function test_permissions_are_rejected_by_default(): void
+    #[Test]
+    public function permissions_are_rejected_by_default(): void
     {
         $choice = new DeferredFuture();
         $client = FakeAgent::create()
@@ -104,7 +108,8 @@ final class ClientConnectionTest extends TestCase
         self::assertSame('reject', $choice->getFuture()->await());
     }
 
-    public function test_a_permission_handler_decides(): void
+    #[Test]
+    public function a_permission_handler_decides(): void
     {
         $choices = [];
         $client = FakeAgent::create()
@@ -126,7 +131,8 @@ final class ClientConnectionTest extends TestCase
         self::assertSame(['allow', 'reject'], $choices);
     }
 
-    public function test_cancelling_a_turn_answers_pending_permissions_with_cancelled(): void
+    #[Test]
+    public function cancelling_a_turn_answers_pending_permissions_with_cancelled(): void
     {
         $asked = new DeferredFuture();
         $agentSaw = new DeferredFuture();
@@ -156,7 +162,8 @@ final class ClientConnectionTest extends TestCase
         self::assertSame(StopReason::Cancelled, $turn->stopReason());
     }
 
-    public function test_a_prompt_cancellation_cancels_the_turn(): void
+    #[Test]
+    public function a_prompt_cancellation_cancels_the_turn(): void
     {
         $client = FakeAgent::create()
             ->onPrompt(function (FakeTurn $turn): null {
@@ -179,7 +186,8 @@ final class ClientConnectionTest extends TestCase
         self::assertSame('Working…', $turn->text());
     }
 
-    public function test_one_turn_at_a_time(): void
+    #[Test]
+    public function one_turn_at_a_time(): void
     {
         $release = new DeferredFuture();
         $client = FakeAgent::create()
@@ -204,7 +212,8 @@ final class ClientConnectionTest extends TestCase
         self::assertSame(StopReason::EndTurn, $session->prompt('two')->stopReason());
     }
 
-    public function test_the_agent_reads_and_writes_files_through_the_client(): void
+    #[Test]
+    public function the_agent_reads_and_writes_files_through_the_client(): void
     {
         $root = sys_get_temp_dir() . '/acp-fs-' . bin2hex(random_bytes(4));
         mkdir($root);
@@ -233,7 +242,8 @@ final class ClientConnectionTest extends TestCase
         self::assertStringContainsString('Access outside of', $results['escape']);
     }
 
-    public function test_capabilities_follow_the_handlers(): void
+    #[Test]
+    public function capabilities_follow_the_handlers(): void
     {
         $agent = FakeAgent::create();
         $agent->connect()->initialize();
@@ -245,7 +255,8 @@ final class ClientConnectionTest extends TestCase
         self::assertTrue($with['clientCapabilities']['fs']['writeTextFile']);
     }
 
-    public function test_a_session_can_be_loaded_with_its_history(): void
+    #[Test]
+    public function a_session_can_be_loaded_with_its_history(): void
     {
         $agent = FakeAgent::create()->onPrompt(function (FakeTurn $turn): null {
             $turn->say('Hello!');
@@ -270,7 +281,8 @@ final class ClientConnectionTest extends TestCase
         self::assertSame('Hello!', $loaded->prompt('Again')->text());
     }
 
-    public function test_loading_requires_the_capability(): void
+    #[Test]
+    public function loading_requires_the_capability(): void
     {
         $client = FakeAgent::create()->withCapabilities(new AgentCapabilities(loadSession: false))->connect();
         $client->initialize();
@@ -279,7 +291,8 @@ final class ClientConnectionTest extends TestCase
         $client->loadSession('sess_1', cwd: '/tmp');
     }
 
-    public function test_authentication_when_the_agent_requires_it(): void
+    #[Test]
+    public function authentication_when_the_agent_requires_it(): void
     {
         $client = FakeAgent::create()->requiringAuthentication()->connect();
         $init = $client->initialize();
@@ -295,7 +308,8 @@ final class ClientConnectionTest extends TestCase
         self::assertStringStartsWith('fake-session-', $client->newSession(cwd: '/tmp')->id);
     }
 
-    public function test_an_unsupported_protocol_version_closes_the_connection(): void
+    #[Test]
+    public function an_unsupported_protocol_version_closes_the_connection(): void
     {
         $client = FakeAgent::create()->speakingProtocol(0)->connect();
 
@@ -308,13 +322,15 @@ final class ClientConnectionTest extends TestCase
         self::assertTrue($client->isClosed());
     }
 
-    public function test_sessions_require_initialize(): void
+    #[Test]
+    public function sessions_require_initialize(): void
     {
         $this->expectException(CapabilityNotSupported::class);
         FakeAgent::create()->connect()->newSession(cwd: '/tmp');
     }
 
-    public function test_an_agent_error_fails_the_turn(): void
+    #[Test]
+    public function an_agent_error_fails_the_turn(): void
     {
         $client = FakeAgent::create()
             ->onPrompt(fn () => throw new RpcError(-32603, 'Model overloaded'))
@@ -328,7 +344,8 @@ final class ClientConnectionTest extends TestCase
         $turn->wait();
     }
 
-    public function test_updates_outside_turns_reach_listeners(): void
+    #[Test]
+    public function updates_outside_turns_reach_listeners(): void
     {
         $client = FakeAgent::create()->connect();
         $client->initialize();
@@ -344,7 +361,8 @@ final class ClientConnectionTest extends TestCase
         self::assertSame('ask', $session->modes()?->currentModeId);
     }
 
-    public function test_a_closed_connection_fails_the_running_turn(): void
+    #[Test]
+    public function a_closed_connection_fails_the_running_turn(): void
     {
         $client = FakeAgent::create()
             ->onPrompt(function (FakeTurn $turn): null {
