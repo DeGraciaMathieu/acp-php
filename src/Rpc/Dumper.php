@@ -30,18 +30,19 @@ final class Dumper
 
     public function format(Direction $direction, string $message): string
     {
-        $decoded = json_decode($message, true);
-        if (! is_array($decoded)) {
+        // Decoded as objects, not arrays: an empty object must print as {}, not [].
+        $decoded = json_decode($message);
+        if (! $decoded instanceof \stdClass) {
             return "{$direction->value} {$message}";
         }
 
-        $id = isset($decoded['id']) && (is_int($decoded['id']) || is_string($decoded['id'])) ? "#{$decoded['id']} " : '';
+        $id = isset($decoded->id) && (is_int($decoded->id) || is_string($decoded->id)) ? "#{$decoded->id} " : '';
         $label = match (true) {
-            is_string($decoded['method'] ?? null) => $decoded['method'],
-            array_key_exists('error', $decoded) => 'error',
+            is_string($decoded->method ?? null) => $decoded->method,
+            property_exists($decoded, 'error') => 'error',
             default => 'result',
         };
-        $payload = $decoded['params'] ?? $decoded['error'] ?? $decoded['result'] ?? null;
+        $payload = $decoded->params ?? $decoded->error ?? $decoded->result ?? null;
 
         return "{$direction->value} {$id}{$label} " . json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
