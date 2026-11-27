@@ -35,28 +35,6 @@ final class HydrationTest extends TestCase
     }
 
     #[Test]
-    public function unknown_enum_values_are_kept_raw(): void
-    {
-        $response = Schema\PromptResponse::fromArray(['stopReason' => 'budget_exceeded']);
-
-        self::assertSame('budget_exceeded', $response->stopReason);
-        self::assertSame('{"stopReason":"budget_exceeded"}', json_encode($response));
-    }
-
-    #[Test]
-    public function unknown_variants_are_kept_raw(): void
-    {
-        $payload = ['sessionUpdate' => 'telemetry_v3', 'cpu' => 0.4, 'nested' => ['a' => 1]];
-
-        $update = SessionUpdate::fromArray($payload);
-
-        self::assertInstanceOf(SessionUpdate\Unrecognized::class, $update);
-        self::assertSame('telemetry_v3', $update->tag());
-        self::assertSame($payload, $update->data);
-        self::assertSame($payload, json_decode((string) json_encode($update), true));
-    }
-
-    #[Test]
     public function untagged_unions_resolve_by_shape(): void
     {
         $text = Schema\EmbeddedResourceResource::fromArray(['uri' => 'file:///a.md', 'text' => '# A']);

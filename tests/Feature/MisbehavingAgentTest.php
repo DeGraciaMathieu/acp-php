@@ -8,6 +8,7 @@ use Acp\Client\ClientConnection;
 use Acp\Exception\RpcError;
 use Acp\Rpc\Connection;
 use Acp\Rpc\InMemoryTransport;
+use Acp\Rpc\Transport;
 use Acp\Schema\ErrorCode;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -42,16 +43,34 @@ final class MisbehavingAgentTest extends TestCase
         self::assertSame([], $this->clientErrors);
     }
 
+    #[Test]
+    public function an_unparsable_message_is_answered_with_a_parse_error(): void
+    {
+        [$clientSide, $agentSide] = InMemoryTransport::pair();
+        $this->connectClient($clientSide);
+
+        $agentSide->send('{not json');
+        $response = json_decode((string) $agentSide->receive(), true);
+
+        self::assertSame(ErrorCode::ParseError->value, $response['error']['code']);
+        self::assertCount(1, $this->clientErrors);
+    }
+
     private function connectRawAgent(): Connection
     {
         [$clientSide, $agentSide] = InMemoryTransport::pair();
-        new ClientConnection($clientSide, onError: function (\Throwable $e): void {
-            $this->clientErrors[] = $e;
-        });
+        $this->connectClient($clientSide);
         $agent = new Connection($agentSide, fn () => null, fn () => null);
         $agent->start();
 
         return $agent;
+    }
+
+    private function connectClient(Transport $transport): void
+    {
+        new ClientConnection($transport, onError: function (\Throwable $e): void {
+            $this->clientErrors[] = $e;
+        });
     }
 
     /**
