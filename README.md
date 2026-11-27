@@ -1,35 +1,41 @@
 # acp-php
 
-A PHP SDK for the [Agent Client Protocol](https://agentclientprotocol.com) (ACP), the open protocol between clients (editors, orchestrators, CI) and coding agents such as Claude Code, Codex or Gemini CLI.
+**Drive Claude Code from PHP, like an editor does.**
 
-> **Status: early work in progress (0.1.0-dev).** The client side works end to end: it drives `claude-agent-acp` 0.112.0 through initialize, session creation and streamed updates. The API may still change.
+Running Claude Code headless from PHP usually looks like this:
 
-## Why
+```php
+$process = proc_open(
+    ['claude', '-p', $prompt, '--output-format', 'stream-json', '--verbose', '--dangerously-skip-permissions'],
+    [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+    $pipes,
+);
 
-ACP has official SDKs in Rust, TypeScript, Python, Kotlin and Java, and community ones in many languages, but none in PHP. This package aims to let a PHP application drive agents the same way an editor does: open sessions, send prompts, stream updates, answer permission and elicitation requests.
+while (($line = fgets($pipes[1])) !== false) {
+    $event = json_decode($line, true);
+    // Claude's own event format: guess the shapes, follow their changes.
+}
+```
 
-## Driving an agent
+A process per prompt, unless you stream its input as JSON too. A stream of untyped JSON to decode. And permissions decided before the agent even starts: skip them all, or list the allowed tools upfront. Answering a permission when the agent asks for it means building an MCP permission tool.
+
+acp-php talks to Claude Code through the [Agent Client Protocol](https://agentclientprotocol.com), the protocol editors such as Zed use to drive coding agents:
 
 ```php
 use Acp\AgentProcess;
-use Acp\Client\FileSystem\LocalFileSystem;
-use Acp\Client\Permission\ApproveAll;
-use Acp\Schema\SessionUpdate;
+use Acp\Client\Permission\{CallbackPermissions, Outcome};
+use Acp\Schema\{RequestPermissionRequest, SessionUpdate, ToolKind};
 
-$agent = AgentProcess::start(
-    'claude-agent-acp',                        // npm i -g @agentclientprotocol/claude-agent-acp
-    cwd: '/home/me/game',
-    env: ['ANTHROPIC_API_KEY' => null],        // use the Claude Code login, not API billing
-);
+$agent = AgentProcess::start('claude-agent-acp', cwd: '/path/to/project');
 
-$client = $agent->connect(
-    permissions: new ApproveAll(),             // default: reject everything
-    fileSystem: new LocalFileSystem('/home/me/game'), // optional: serve file reads and writes, confined to a root
-);
+$client = $agent->connect(permissions: new CallbackPermissions(
+    fn (RequestPermissionRequest $request) => $request->toolCall->kind === ToolKind::Execute
+        ? Outcome::reject($request)
+        : Outcome::approve($request),
+));
 $client->initialize();
 
-$session = $client->newSession(cwd: '/home/me/game');
-$turn = $session->prompt('Switch the game to a dark theme');
+$turn = $client->newSession(cwd: '/path/to/project')->prompt('Fix the failing test');
 
 foreach ($turn->updates() as $update) {
     if ($update instanceof SessionUpdate\ToolCall) {
@@ -37,177 +43,46 @@ foreach ($turn->updates() as $update) {
     }
 }
 
-$turn->stopReason();             // StopReason::EndTurn
-echo $turn->text();              // the agent's answer, as plain text
-
+echo $turn->text();
 $agent->stop();
 ```
 
-The API reads synchronously, but runs on [amphp](https://amphp.org) fibers: while your code waits on a turn, the SDK keeps reading the agent's messages and answering its requests.
+## What you get
 
-### Turns
+- **Permissions decided live.** Claude asks before it edits or runs something, your code answers: a policy, a human on Slack, a CI rule.
+- **A typed stream.** Tool calls, plans and messages arrive as PHP objects, not JSON to guess.
+- **Sessions that last.** Several prompts in one conversation, cancel a turn, resume a session later.
+- **Files under control.** Serve Claude's reads and writes yourself, confined to a directory.
+- **Testable.** `FakeAgent` plays the agent in your tests: no API key, no network.
 
-- `$session->prompt()` returns at once. Read `$turn->updates()` as they stream, or just wait with `stopReason()`, `text()` or `wait()`: updates are buffered, reading them is optional.
-- `$turn->cancel()` (or a cancellation passed to `prompt()`) cancels the ACP way: the agent ends the turn with the `cancelled` stop reason, and pending permission requests are answered with the `cancelled` outcome right away, even if your handler is still waiting.
-- One turn at a time per session, as in ACP v1 (`TurnInProgress` otherwise).
-- `$session->onUpdate()` sees every update, inside turns or not, to log or persist a session.
-- `$client->loadSession($id, cwd: …)` resumes a session; the replayed conversation is in `$session->history()`.
+## Install
 
-### Permissions
+```bash
+composer require degraciamathieu/acp-php
+npm i -g @agentclientprotocol/claude-agent-acp
+```
 
-Implement `PermissionHandler`, or use `ApproveAll`, `RejectAll` or `CallbackPermissions`:
+`claude-agent-acp` is the ACP adapter of Claude Code. It uses your Claude Code login: start the agent with `env: ['ANTHROPIC_API_KEY' => null]` to keep it off API billing.
+
+## Test without an agent
 
 ```php
-use Acp\Client\Permission\{CallbackPermissions, Outcome};
-use Acp\Schema\{RequestPermissionRequest, ToolKind};
-
-$permissions = new CallbackPermissions(fn (RequestPermissionRequest $request) => match ($request->toolCall->kind) {
-    ToolKind::Read, ToolKind::Edit => Outcome::approve($request),
-    default => Outcome::reject($request),
-});
-```
-
-A handler may wait as long as it needs (for a human, on Telegram): the session keeps flowing meanwhile.
-
-### Errors
-
-- `RpcError`: the agent answered with an error. `$e->isAuthRequired()` for `-32000`, then `$client->authenticate($methodId)`.
-- `ConnectionClosed`: the agent exited. `$agent->stderr()` keeps its last lines.
-- `InvalidPayload`: a message does not match the schema.
-
-### Debugging
-
-`$turn->updates()` only shows what the agent streams. To see every JSON-RPC message, permission requests and file reads included, pass a `Dumper` to `connect()`:
-
-```php
-use Acp\Rpc\Dumper;
-
-$client = $agent->connect(permissions: new ApproveAll(), onMessage: new Dumper());
-```
-
-It prints one line per message on STDERR, `→` for what the client sends and `←` for what it receives:
-
-```
-→ #2 session/prompt {"sessionId":"sess_1","prompt":[{"type":"text","text":"Run the tests"}]}
-← session/update {"sessionId":"sess_1","update":{"sessionUpdate":"tool_call","toolCallId":"call_1",…}}
-← #0 session/request_permission {"sessionId":"sess_1","toolCall":{…},"options":[…]}
-→ #0 result {"outcome":{"outcome":"selected","optionId":"allow"}}
-← #2 result {"stopReason":"end_turn"}
-```
-
-`new Dumper(fopen('acp.log', 'a'))` writes to a file instead. `onMessage` takes any `callable(Direction, string): void`, to log the raw messages your own way. See `examples/05-dumper.php`.
-
-## Testing your client
-
-`FakeAgent` is a scriptable agent, in memory or as a real subprocess:
-
-```php
-use Acp\Schema\{StopReason, ToolKind};
 use Acp\Testing\{FakeAgent, FakeTurn};
 
 $client = FakeAgent::create()
-    ->onPrompt(function (FakeTurn $turn) {
-        $turn->toolCall('call_1', 'Run the tests', ToolKind::Execute);
-        if ($turn->requestPermission('call_1', 'npm test') === null) {
-            return StopReason::Cancelled;
-        }
-        $turn->say('All green.');
-    })
-    ->connect(permissions: $myHandler);
+    ->onPrompt(fn (FakeTurn $turn) => $turn->say('All green.'))
+    ->connect();
 ```
 
-`$turn->readFile()`, `writeFile()`, `plan()`, `think()`, `untilCancelled()` and `FakeAgent::received()` cover the rest. `FakeAgent::runOverStdio()` turns a small PHP script into an agent process.
+## Learn more
 
-## The schema layer
+- [Driving an agent](docs/client.md): turns, permissions, files, sessions, errors, debugging
+- [Testing your client](docs/testing.md)
+- [The schema layer](docs/schema.md)
+- [Examples](examples/)
+- [Contributing](docs/contributing.md): roadmap and development
 
-Every type of the protocol is a generated, immutable PHP class built from the official `schema.json` (currently `schema-v1.35.0`, see `resources/schema/v1/VERSION`).
-
-```php
-use Acp\Schema;
-use Acp\Schema\ContentBlock\TextContent;
-use Acp\Schema\SessionUpdate;
-
-// Build messages by hand…
-$prompt = new Schema\PromptRequest(
-    sessionId: 'sess_abc123',
-    prompt: [new TextContent('Switch the game to a dark theme')],
-);
-json_encode($prompt); // {"sessionId":"sess_abc123","prompt":[{"type":"text","text":"…"}]}
-
-// …or hydrate what an agent sends.
-$update = Schema\SessionNotification::fromArray($params)->update;
-
-if ($update instanceof SessionUpdate\AgentMessageChunk && $update->content instanceof TextContent) {
-    echo $update->content->text;
-}
-
-if ($update instanceof SessionUpdate\ToolCall) {
-    echo $update->title;
-
-    if ($update->status === Schema\ToolCallStatus::Failed) {
-        // …
-    }
-}
-
-if ($update instanceof SessionUpdate\Unrecognized) {
-    // Sent by a newer agent: $update->tag(), $update->data
-}
-```
-
-### Mapping rules
-
-| Schema | PHP |
-| --- | --- |
-| Object | `final readonly class` with `fromArray()` and `jsonSerialize()` |
-| Tagged union (`sessionUpdate`, `type`, `outcome`…) | `abstract readonly class` dispatching to one `final` class per variant |
-| String or integer constants | Backed enum |
-| Scalar aliases and unions (`SessionId`, `RequestId`…) | Native PHP types |
-| `_meta` | `$meta`, kept as an array on every type |
-| Methods (`meta.json`) | `AgentMethod`, `ClientMethod`, `ProtocolMethod` enums, with `paramsClass()` and `resultClass()` |
-
-### Forward compatibility
-
-A client built with this SDK must keep working when an agent speaks a newer version of the protocol:
-
-- **Open enums.** An unknown value (`"stopReason": "budget_exceeded"`) is kept as a raw string instead of throwing. Typed properties are `StopReason|string`.
-- **Unrecognized variants.** An unknown union variant becomes `…\Unrecognized`, which keeps the raw payload and serializes it back untouched.
-- **Lenient fields.** Fields flagged `x-deserialize-default-on-error` in the schema fall back to their default when invalid, and lists flagged `x-deserialize-skip-invalid-items` drop invalid items, like the official Rust SDK does.
-- **Schema defaults** are applied on hydration (`$capabilities->loadSession` is `false`, not `null`) and not re-emitted on serialization.
-
-Invalid payloads throw `Acp\Exception\InvalidPayload` with the full path of the faulty field (`prompt[1].text: expected string, got int`).
-
-## Roadmap
-
-- [x] Schema generator and generated types (v1)
-- [x] JSON-RPC core: bidirectional requests, notifications, errors, `$/cancel_request`
-- [x] Transports: stdio subprocess (amphp v3), in-memory for tests
-- [x] Client API: `initialize`, `authenticate`, sessions, prompt turns, cancellation, `session/load`, modes
-- [x] Client handlers: permissions, file system
-- [x] `FakeAgent`: a scriptable agent to test ACP clients without a real one
-- [ ] Client handlers: elicitation, terminals
-- [ ] `session/list`, `session/resume`, `session/close`, config options
-- [ ] Integration tests against `claude-agent-acp` with real credentials
-- [ ] Agent side, to write ACP agents in PHP
-- [ ] Protocol v2, behind version negotiation
-
-## Development
-
-```bash
-composer install
-composer test           # PHPUnit, both suites
-composer test:feature   # use cases, through the public API
-composer test:contract  # generated src/Schema against the JSON schema
-composer analyse        # PHPStan
-composer check-schema   # fails if src/Schema is out of date
-```
-
-`src/Schema` is generated: never edit it by hand. To follow a new release of the protocol:
-
-```bash
-composer update-schema               # latest release, or pass a tag: composer update-schema -- schema-v1.36.0
-composer generate
-git diff src/Schema                  # review what changed in the protocol
-```
+> **Early work in progress (0.1.0-dev).** Validated against `claude-agent-acp` 0.112.0. The API may still change.
 
 ## License
 
