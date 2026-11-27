@@ -29,9 +29,10 @@ use Acp\Schema\{RequestPermissionRequest, SessionUpdate, ToolKind};
 $agent = AgentProcess::start('claude-agent-acp', cwd: '/path/to/project');
 
 $client = $agent->connect(permissions: new CallbackPermissions(
-    fn (RequestPermissionRequest $request) => $request->toolCall->kind === ToolKind::Execute
-        ? Outcome::reject($request)
-        : Outcome::approve($request),
+    fn (RequestPermissionRequest $request) => match ($request->toolCall->kind) {
+        ToolKind::Execute => Outcome::reject($request),
+        default => Outcome::approve($request),
+    },
 ));
 $client->initialize();
 
