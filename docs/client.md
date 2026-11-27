@@ -18,7 +18,7 @@ $client = $agent->connect(
 );
 $client->initialize();
 
-$session = $client->newSession(cwd: '/home/me/game');
+$session = $client->newSession();                  // works in the agent's directory
 $turn = $session->prompt('Switch the game to a dark theme');
 
 foreach ($turn->updates() as $update) {
@@ -41,7 +41,8 @@ The API reads synchronously, but runs on [amphp](https://amphp.org) fibers: whil
 - `$turn->cancel()` (or a cancellation passed to `prompt()`) cancels the ACP way: the agent ends the turn with the `cancelled` stop reason, and pending permission requests are answered with the `cancelled` outcome right away, even if your handler is still waiting.
 - One turn at a time per session, as in ACP v1 (`TurnInProgress` otherwise).
 - `$session->onUpdate()` sees every update, inside turns or not, to log or persist a session.
-- `$client->loadSession($id, cwd: …)` resumes a session; the replayed conversation is in `$session->history()`.
+- A session works in the agent's directory. One agent can serve several projects: `$client->newSession(cwd: '/home/me/other')`.
+- `$client->loadSession($id)` resumes a session; the replayed conversation is in `$session->history()`.
 
 ## Permissions
 

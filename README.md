@@ -35,7 +35,7 @@ $client = $agent->connect(permissions: new CallbackPermissions(
 ));
 $client->initialize();
 
-$turn = $client->newSession(cwd: '/path/to/project')->prompt('Fix the failing test');
+$turn = $client->newSession()->prompt('Fix the failing test');
 
 foreach ($turn->updates() as $update) {
     if ($update instanceof SessionUpdate\ToolCall) {

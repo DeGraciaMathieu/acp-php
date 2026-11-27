@@ -48,7 +48,7 @@ use function Amp\async;
  *
  *     $client = AgentProcess::start('claude-agent-acp')->connect();
  *     $client->initialize();
- *     $session = $client->newSession(cwd: '/path/to/project');
+ *     $session = $client->newSession();
  *     echo $session->prompt('Explain this project')->text();
  */
 final class ClientConnection
@@ -65,8 +65,11 @@ final class ClientConnection
     /** @var array<string, Session> */
     private array $sessions = [];
 
+    private readonly ?string $cwd;
+
     /**
      * @param Closure(Throwable): void|null $onError Errors that cannot be reported to the agent (invalid messages…).
+     * @param string|null $cwd Working directory of the sessions that name none. Defaults to the current directory.
      */
     public function __construct(
         Transport $transport,
@@ -74,8 +77,10 @@ final class ClientConnection
         private readonly ?FileSystemHandler $fileSystem = null,
         private readonly ?Implementation $clientInfo = null,
         ?Closure $onError = null,
+        ?string $cwd = null,
     ) {
         $this->permissions = $permissions ?? new RejectAll();
+        $this->cwd = $cwd ?? (getcwd() ?: null);
         $this->rpc = new Connection(
             $transport,
             $this->handleRequest(...),
@@ -141,15 +146,16 @@ final class ClientConnection
     }
 
     /**
+     * @param string|null $cwd Absolute directory the agent works in. Defaults to the agent's directory.
      * @param list<McpServer> $mcpServers MCP servers the agent should connect to for this session.
      * @param list<string> $additionalDirectories Other absolute directories the agent may work in.
      */
-    public function newSession(string $cwd, array $mcpServers = [], array $additionalDirectories = [], ?Cancellation $cancellation = null): Session
+    public function newSession(?string $cwd = null, array $mcpServers = [], array $additionalDirectories = [], ?Cancellation $cancellation = null): Session
     {
         $this->initialization();
         $response = NewSessionResponse::fromArray(Cast::obj($this->rpc->request(
             AgentMethod::SessionNew->value,
-            new NewSessionRequest(cwd: $cwd, mcpServers: $mcpServers, additionalDirectories: $additionalDirectories),
+            new NewSessionRequest(cwd: $this->sessionDirectory($cwd), mcpServers: $mcpServers, additionalDirectories: $additionalDirectories),
             $cancellation,
         ), 'result'));
 
@@ -160,9 +166,10 @@ final class ClientConnection
      * Resumes a previous session. The agent replays the conversation, available through
      * Session::history() once this returns.
      *
+     * @param string|null $cwd Defaults to the agent's directory.
      * @param list<McpServer> $mcpServers
      */
-    public function loadSession(string $sessionId, string $cwd, array $mcpServers = [], ?Cancellation $cancellation = null): Session
+    public function loadSession(string $sessionId, ?string $cwd = null, array $mcpServers = [], ?Cancellation $cancellation = null): Session
     {
         if (! $this->agentCapabilities()->loadSession) {
             throw CapabilityNotSupported::named('loadSession');
@@ -176,7 +183,7 @@ final class ClientConnection
         try {
             $response = LoadSessionResponse::fromArray(Cast::obj($this->rpc->request(
                 AgentMethod::SessionLoad->value,
-                new LoadSessionRequest(mcpServers: $mcpServers, cwd: $cwd, sessionId: $sessionId),
+                new LoadSessionRequest(mcpServers: $mcpServers, cwd: $this->sessionDirectory($cwd), sessionId: $sessionId),
                 $cancellation,
             ), 'result'));
         } catch (Throwable $e) {
@@ -277,6 +284,11 @@ final class ClientConnection
             }
             throw $e;
         }
+    }
+
+    private function sessionDirectory(?string $cwd): string
+    {
+        return $cwd ?? $this->cwd ?? throw new \LogicException('No current directory to default to: pass the session $cwd.');
     }
 
     private function fileSystem(): FileSystemHandler

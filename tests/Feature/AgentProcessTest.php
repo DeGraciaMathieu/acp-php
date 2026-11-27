@@ -6,6 +6,7 @@ namespace Acp\Tests\Feature;
 
 use Acp\AgentProcess;
 use Acp\Exception\ConnectionClosed;
+use Acp\Rpc\Direction;
 use Acp\Schema\SessionUpdate;
 use Acp\Schema\StopReason;
 use PHPUnit\Framework\Attributes\Test;
@@ -79,6 +80,23 @@ final class AgentProcessTest extends TestCase
 
         self::assertSame(3, $agent->wait());
         self::assertContains('fatal: missing credentials', $agent->stderr());
+    }
+
+    #[Test]
+    public function sessions_work_in_the_agent_directory_by_default(): void
+    {
+        $sent = [];
+        $agent = AgentProcess::start(PHP_BINARY, [self::SCRIPT], cwd: sys_get_temp_dir());
+        $client = $agent->connect(onMessage: function (Direction $direction, string $message) use (&$sent): void {
+            $sent[] = json_decode($message, true);
+        });
+        $client->initialize();
+
+        $client->newSession();
+        $agent->stop();
+
+        $sessionNew = array_values(array_filter($sent, fn (array $message): bool => ($message['method'] ?? null) === 'session/new'));
+        self::assertSame(realpath(sys_get_temp_dir()), $sessionNew[0]['params']['cwd']);
     }
 
     #[Test]

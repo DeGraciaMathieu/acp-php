@@ -42,6 +42,19 @@ final class SessionTest extends TestCase
     }
 
     #[Test]
+    public function a_session_works_in_the_current_directory_unless_told_otherwise(): void
+    {
+        $agent = FakeAgent::create();
+        $client = $agent->connect();
+        $client->initialize();
+
+        $client->newSession();
+        $client->newSession(cwd: '/srv/other-project');
+
+        self::assertSame([getcwd(), '/srv/other-project'], array_column($agent->received('session/new'), 'cwd'));
+    }
+
+    #[Test]
     public function loading_requires_the_capability(): void
     {
         $client = FakeAgent::create()->withCapabilities(new AgentCapabilities(loadSession: false))->connect();

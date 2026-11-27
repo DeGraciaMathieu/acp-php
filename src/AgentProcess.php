@@ -48,6 +48,7 @@ final class AgentProcess
         private readonly Process $process,
         private readonly StdioTransport $transport,
         private readonly ?Closure $onStderr,
+        private readonly ?string $cwd,
     ) {
         $this->stderrPump = async(function (): void {
             try {
@@ -70,6 +71,8 @@ final class AgentProcess
      * Starts the agent.
      *
      * @param list<string> $args
+     * @param string|null $cwd Working directory of the agent, and of its sessions unless they name another one.
+     *                         Defaults to the current directory.
      * @param array<string, string|null> $env Added to the current environment; null removes a variable
      *                                        (e.g. ['ANTHROPIC_API_KEY' => null] to use a subscription login).
      * @param Closure(string): void|null $onStderr Called with each line the agent logs.
@@ -92,7 +95,15 @@ final class AgentProcess
 
         $process = Process::start([$command, ...$args], $cwd, $environment);
 
-        return new self($process, new StdioTransport($process->getStdout(), $process->getStdin()), $onStderr);
+        // ACP requires absolute session directories.
+        $directory = $cwd === null ? getcwd() : realpath($cwd);
+
+        return new self(
+            $process,
+            new StdioTransport($process->getStdout(), $process->getStdin()),
+            $onStderr,
+            $directory === false ? null : $directory,
+        );
     }
 
     /**
@@ -116,7 +127,7 @@ final class AgentProcess
 
         $transport = $onMessage === null ? $this->transport : new ObservedTransport($this->transport, $onMessage(...));
 
-        return $this->client = new ClientConnection($transport, $permissions, $fileSystem, $clientInfo, $onError);
+        return $this->client = new ClientConnection($transport, $permissions, $fileSystem, $clientInfo, $onError, $this->cwd);
     }
 
     public function pid(): int
