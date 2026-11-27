@@ -75,6 +75,28 @@ A handler may wait as long as it needs (for a human, on Telegram): the session k
 - `ConnectionClosed`: the agent exited. `$agent->stderr()` keeps its last lines.
 - `InvalidPayload`: a message does not match the schema.
 
+### Debugging
+
+`$turn->updates()` only shows what the agent streams. To see every JSON-RPC message, permission requests and file reads included, pass a `Dumper` to `connect()`:
+
+```php
+use Acp\Rpc\Dumper;
+
+$client = $agent->connect(permissions: new ApproveAll(), onMessage: new Dumper());
+```
+
+It prints one line per message on STDERR, `→` for what the client sends and `←` for what it receives:
+
+```
+→ #2 session/prompt {"sessionId":"sess_1","prompt":[{"type":"text","text":"Run the tests"}]}
+← session/update {"sessionId":"sess_1","update":{"sessionUpdate":"tool_call","toolCallId":"call_1",…}}
+← #0 session/request_permission {"sessionId":"sess_1","toolCall":{…},"options":[…]}
+→ #0 result {"outcome":{"outcome":"selected","optionId":"allow"}}
+← #2 result {"stopReason":"end_turn"}
+```
+
+`new Dumper(fopen('acp.log', 'a'))` writes to a file instead. `onMessage` takes any `callable(Direction, string): void`, to log the raw messages your own way. See `examples/05-dumper.php`.
+
 ## Testing your client
 
 `FakeAgent` is a scriptable agent, in memory or as a real subprocess:
