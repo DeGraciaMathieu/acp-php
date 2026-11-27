@@ -2,6 +2,8 @@
 
 **Drive Claude Code from PHP, like an editor does.**
 
+![Claude Code fixes a failing test from a PHP script, which allows its edit and refuses its commands](docs/demo.gif)
+
 Running Claude Code headless from PHP usually looks like this:
 
 ```php
