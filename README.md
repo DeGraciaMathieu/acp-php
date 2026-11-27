@@ -1,4 +1,4 @@
-# acp-php
+<p align="center"><img src="docs/logo.svg" alt="acp-php" width="360"></p>
 
 **Drive Claude Code from PHP, like an editor does.**
 
