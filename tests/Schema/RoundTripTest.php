@@ -7,6 +7,7 @@ namespace Acp\Tests\Schema;
 use Acp\Schema;
 use JsonSerializable;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -99,8 +100,9 @@ final class RoundTripTest extends TestCase
     /**
      * @param class-string $class
      */
+    #[Test]
     #[DataProvider('messages')]
-    public function test_a_message_survives_a_round_trip(string $class, string $json): void
+    public function a_message_survives_a_round_trip(string $class, string $json): void
     {
         $object = $class::fromArray(json_decode($json, true, flags: JSON_THROW_ON_ERROR));
 

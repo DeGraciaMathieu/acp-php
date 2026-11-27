@@ -8,13 +8,15 @@ use Acp\AgentProcess;
 use Acp\Exception\ConnectionClosed;
 use Acp\Schema\SessionUpdate;
 use Acp\Schema\StopReason;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class AgentProcessTest extends TestCase
 {
     private const SCRIPT = __DIR__ . '/Fixtures/fake-agent.php';
 
-    public function test_a_real_agent_subprocess_over_stdio(): void
+    #[Test]
+    public function a_real_agent_subprocess_over_stdio(): void
     {
         $logs = [];
         $cwd = sys_get_temp_dir();
@@ -46,7 +48,8 @@ final class AgentProcessTest extends TestCase
         self::assertContains('fake agent started in normal mode', $agent->stderr());
     }
 
-    public function test_environment_variables_can_be_removed(): void
+    #[Test]
+    public function environment_variables_can_be_removed(): void
     {
         putenv('ACP_TEST=inherited');
         try {
@@ -62,7 +65,8 @@ final class AgentProcessTest extends TestCase
         self::assertStringEndsWith('ACP_TEST=unset', $text);
     }
 
-    public function test_an_agent_that_exits_early(): void
+    #[Test]
+    public function an_agent_that_exits_early(): void
     {
         $agent = AgentProcess::start(PHP_BINARY, [self::SCRIPT, 'crash']);
         $client = $agent->connect();
