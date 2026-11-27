@@ -34,6 +34,7 @@ final class DumperTest extends TestCase
         $lines = explode("\n", trim((string) stream_get_contents($stream)));
 
         self::assertStringStartsWith('→ #0 initialize {', $lines[0]);
+        self::assertStringContainsString('"clientCapabilities":{}', $lines[0], 'Empty objects must not print as [].');
         self::assertStringStartsWith('← #0 result {', $lines[1]);
         self::assertContains('→ #0 result {"outcome":{"outcome":"selected","optionId":"allow"}}', $lines);
         self::assertNotEmpty(preg_grep('/^← #\d+ session\/request_permission \{/', $lines));
