@@ -39,7 +39,7 @@ final class Turn
      * @internal created by Session::prompt()
      */
     public function __construct(
-        private readonly Session $session,
+        private readonly TurnOwner $owner,
     ) {
         $this->stream = new UpdateStream();
         $this->response = new DeferredFuture();
@@ -91,7 +91,7 @@ final class Turn
     public function cancel(): void
     {
         if (! $this->isDone()) {
-            $this->session->cancel();
+            $this->owner->cancel();
         }
     }
 
