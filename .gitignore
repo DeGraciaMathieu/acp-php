@@ -2,3 +2,6 @@
 /composer.lock
 /.phpunit.cache/
 /.phpunit.result.cache
+/class-dependencies-analyzer
+/.dependencies-cache
+/dependencies.sarif

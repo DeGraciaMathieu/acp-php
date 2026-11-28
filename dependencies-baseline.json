@@ -1,0 +1,17 @@
+{
+    "schema": 1,
+    "violations": [
+        {
+            "fingerprint": "no-cycles:class:Acp\\Client\\ClientConnection,Acp\\Client\\Session,Acp\\Client\\Turn",
+            "message": "Class cycle: Acp\\Client\\ClientConnection → Acp\\Client\\Session → Acp\\Client\\Turn."
+        },
+        {
+            "fingerprint": "no-cycles:class:Acp\\Testing\\FakeAgent,Acp\\Testing\\FakeTurn",
+            "message": "Class cycle: Acp\\Testing\\FakeAgent → Acp\\Testing\\FakeTurn."
+        },
+        {
+            "fingerprint": "no-cycles:component:Acp\\Exception,Acp\\Schema,Acp\\Support",
+            "message": "Component cycle: Acp\\Exception → Acp\\Schema → Acp\\Support."
+        }
+    ]
+}

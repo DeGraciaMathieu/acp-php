@@ -6,6 +6,8 @@
 /.gitignore         export-ignore
 /phpstan.neon.dist  export-ignore
 /phpunit.xml.dist   export-ignore
+/dependencies.php   export-ignore
+/dependencies-baseline.json export-ignore
 
 /src/Schema/**      linguist-generated=true
 /examples          export-ignore
