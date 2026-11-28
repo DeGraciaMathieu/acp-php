@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Acp\Client;
+namespace Acp\Client\Permission;
 
 use Acp\Schema\RequestPermissionRequest;
 use Acp\Schema\RequestPermissionResponse;

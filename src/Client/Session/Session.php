@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Acp\Client;
+namespace Acp\Client\Session;
 
 use Acp\Exception\TurnInProgress;
 use Acp\Rpc\Connection;

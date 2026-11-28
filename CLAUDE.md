@@ -6,7 +6,7 @@ PHP client SDK for the [Agent Client Protocol](https://agentclientprotocol.com) 
 
 - `src/Schema`: the protocol types, **generated** from `resources/schema/v1/schema.json` by `bin/generate-schema.php`. Never edit them by hand: change the generator, then `composer generate`.
 - `src/Rpc`: JSON-RPC connection, transports (stdio, in-memory), `Dumper`.
-- `src/Client`: the public API (`ClientConnection`, `Session`, `Turn`) and the permission and file system handlers.
+- `src/Client`: the public API. `ClientConnection` is the entry point, one folder per feature: `Session` (sessions and turns), `Permission`, `FileSystem`. Features never depend on each other nor on `ClientConnection`.
 - `src/Testing`: `FakeAgent` and `FakeTurn`. Public API too: users test their clients with them.
 - `src/AgentProcess.php`: runs an agent as a subprocess.
 
