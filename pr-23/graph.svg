@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 515" width="780" height="515" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<style>text{fill:#1e1b16}.sub{fill:#6b6357;font-size:11px}.hot{fill:#b5121b;font-size:11px;font-weight:600}.new{fill:#2f7d4f;font-size:11px;font-weight:600}.legend{fill:#6b6357;font-size:12px}.count{fill:#6b6357;font-size:14px;font-weight:600}</style>
+<defs>
+<marker id="arrow-edge" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#a8998a"/></marker>
+<marker id="arrow-added" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2f7d4f"/></marker>
+</defs>
+<rect width="780" height="515" fill="#ffffff"/>
+<text x="20" y="28" font-size="14" font-weight="600">3 classes touched out of 30 · 2 dependencies added</text>
+<g transform="translate(-7 -136)">
+<path d="M384.1 296.8 Q367.6 400.0 384.9 507.9" fill="none" stroke="#a8998a" stroke-width="4.9" stroke-linecap="round" opacity="0.8" marker-end="url(#arrow-edge)"><title>Client → Exception: 6 dependencies, 0 added</title></path>
+<path d="M357.5 278.2 Q283.0 319.8 222.0 386.1" fill="none" stroke="#a8998a" stroke-width="3.8" stroke-linecap="round" opacity="0.8" marker-end="url(#arrow-edge)"><title>Client → Rpc: 3 dependencies, 0 added</title></path>
+<path d="M422.5 278.2 Q497.0 319.8 565.8 394.5" fill="none" stroke="#a8998a" stroke-width="3.3" stroke-linecap="round" opacity="0.8" marker-end="url(#arrow-edge)"><title>Client → Support: 2 dependencies, 0 added</title></path>
+<circle cx="390" cy="260" r="40.2" fill="none" stroke="#e6dfd2" stroke-width="5"/>
+<circle cx="390" cy="260" r="40.2" fill="none" stroke="#b5121b" stroke-width="5" stroke-dasharray="42.1 252.9" transform="rotate(-90 390 260)"/>
+<circle cx="390" cy="260" r="40.2" fill="none" stroke="#2f7d4f" stroke-width="5" stroke-dasharray="21.1 252.9" stroke-dashoffset="-42.1" transform="rotate(-90 390 260)"/>
+<rect x="306.2" y="187.3" width="167.5" height="17" rx="3" fill="#fbe8e8" opacity="0.92"/>
+<text x="390" y="199.8" text-anchor="middle" class="hot">2 changed · 1 added of 12</text>
+<circle cx="390" cy="260" r="34.2" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="390" y="265.0" text-anchor="middle" class="count">12</text>
+<rect x="318.2" y="305.7" width="143.6" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="390" y="318.2" text-anchor="middle" font-size="12.5" font-weight="600">Client<tspan dx="6" class="sub">cohesion 58 %</tspan></text>
+<circle cx="390" cy="540" r="28.5" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="390" y="545.0" text-anchor="middle" class="count">7</text>
+<rect x="303.9" y="580.0" width="172.2" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="390" y="592.5" text-anchor="middle" font-size="12.5" font-weight="600">Exception<tspan dx="6" class="sub">cohesion 100 %</tspan></text>
+<circle cx="200" cy="410" r="28.5" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="200" y="415.0" text-anchor="middle" class="count">7</text>
+<rect x="139.3" y="450.0" width="121.4" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="200" y="462.5" text-anchor="middle" font-size="12.5" font-weight="600">Rpc<tspan dx="6" class="sub">cohesion 55 %</tspan></text>
+<circle cx="580" cy="410" r="17.0" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="580" y="415.0" text-anchor="middle" class="count">1</text>
+<rect x="507.7" y="438.5" width="144.6" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="580" y="451.0" text-anchor="middle" font-size="12.5" font-weight="600">Support<tspan dx="6" class="sub">cohesion 0 %</tspan></text>
+<path d="M384.1 296.8 Q367.6 400.0 384.9 507.9" fill="none" stroke="none" marker-end="url(#arrow-edge)"/>
+<path d="M357.5 278.2 Q283.0 319.8 222.0 386.1" fill="none" stroke="none" marker-end="url(#arrow-edge)"/>
+<path d="M422.5 278.2 Q497.0 319.8 565.8 394.5" fill="none" stroke="none" marker-end="url(#arrow-edge)"/>
+</g>
+<circle cx="25" cy="493" r="5" fill="none" stroke="#b5121b" stroke-width="3"/>
+<text x="36" y="497" class="legend">classes changed</text>
+<circle cx="153" cy="493" r="5" fill="none" stroke="#2f7d4f" stroke-width="3"/>
+<text x="164" y="497" class="legend">classes added</text>
+<line x1="263" y1="493" x2="281" y2="493" stroke="#2f7d4f" stroke-width="3"/>
+<text x="287" y="497" class="legend">dependency added</text>
+<line x1="405" y1="493" x2="423" y2="493" stroke="#a8998a" stroke-width="3"/>
+<text x="429" y="497" class="legend">existing dependency touched</text>
+</svg>
