@@ -132,7 +132,37 @@ $session->prompt('Now make it the default')->wait();
 
 - One agent serves several projects: `$client->newSession(cwd: '/home/me/other')`.
 - `$session->onUpdate()` sees every update of the session, inside turns or not: to log or persist it.
-- Keep `$session->id` to resume the session later, with a new agent process: `$client->loadSession($id)`. The replayed conversation is in `$session->history()`.
+
+### Resuming a session
+
+A session outlives the agent process. Keep its id:
+
+```php
+$session = $client->newSession();
+$session->prompt('Add a dark theme')->wait();
+
+$id = $session->id; // save it, in your database for instance
+$agent->stop();
+```
+
+Later, with a new agent process, `loadSession()` resumes the conversation where it stopped. The agent replays it first: the replayed updates are in `history()`.
+
+```php
+use Acp\Schema\ContentBlock\TextContent;
+use Acp\Schema\SessionUpdate;
+
+$session = $client->loadSession($id);
+
+foreach ($session->history() as $update) {
+    if ($update instanceof SessionUpdate\AgentMessageChunk && $update->content instanceof TextContent) {
+        echo $update->content->text;
+    }
+}
+
+$session->prompt('Now make it the default')->wait();
+```
+
+`loadSession()` throws `CapabilityNotSupported` when the agent cannot resume sessions.
 
 ## Cancelling a turn
 
