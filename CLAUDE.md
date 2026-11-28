@@ -41,7 +41,9 @@ composer analyse        # PHPStan level 8, on src and bin
 composer check-schema   # fails if src/Schema is out of date
 ```
 
-CI runs all of them on PHP 8.2 to 8.6. New behaviour gets a feature test written as a use case.
+CI runs all of them on PHP 8.2 to 8.6.
+
+Tests are functional: each one checks a behaviour a user relies on, through the public API, as a use case ("a refused command is reported to the agent"). No tests of implementation details: private methods, internal classes, how a result is computed. A refactoring that keeps the behaviour must not break a test.
 
 ## Claude Code, as seen through ACP
 
