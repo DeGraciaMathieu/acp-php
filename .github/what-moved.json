@@ -1,11 +1,11 @@
 {
     "contexts": {
-        "AgentProcess": { "position": [150, 110] },
-        "Testing":      { "position": [630, 110] },
-        "Client":       { "position": [390, 230] },
-        "Rpc":          { "position": [170, 390] },
-        "Exception":    { "position": [330, 540] },
-        "Support":      { "position": [700, 540] }
+        "AgentProcess": { "position": [200, 110] },
+        "Testing":      { "position": [580, 110] },
+        "Client":       { "position": [390, 260] },
+        "Rpc":          { "position": [200, 410] },
+        "Support":      { "position": [580, 410] },
+        "Exception":    { "position": [390, 540] }
     },
     "exclude": ["Schema"]
 }
