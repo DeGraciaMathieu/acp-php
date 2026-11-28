@@ -41,7 +41,7 @@ composer analyse        # PHPStan level 8, on src and bin
 composer check-schema   # fails if src/Schema is out of date
 ```
 
-CI runs all of them on PHP 8.2 to 8.6. Tests use the `#[Test]` attribute and sentence-like snake_case names, without a `test_` prefix. New behaviour gets a feature test written as a use case.
+CI runs all of them on PHP 8.2 to 8.6. New behaviour gets a feature test written as a use case.
 
 ## Claude Code, as seen through ACP
 
