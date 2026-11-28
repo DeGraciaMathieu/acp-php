@@ -75,7 +75,7 @@ final class Session
             default => $prompt,
         };
 
-        $turn = new Turn($this->cancel(...));
+        $turn = new Turn($this);
         $this->turn = $turn;
 
         // A fired cancellation cancels the turn the ACP way (session/cancel): the agent

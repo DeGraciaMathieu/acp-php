@@ -11,7 +11,6 @@ use Acp\Schema\StopReason;
 use Amp\Cancellation;
 use Amp\DeferredCancellation;
 use Amp\DeferredFuture;
-use Closure;
 use Generator;
 use Throwable;
 
@@ -38,11 +37,9 @@ final class Turn
 
     /**
      * @internal created by Session::prompt()
-     *
-     * @param Closure(): void $cancel Cancels the session's current turn.
      */
     public function __construct(
-        private readonly Closure $cancel,
+        private readonly Session $session,
     ) {
         $this->stream = new UpdateStream();
         $this->response = new DeferredFuture();
@@ -94,7 +91,7 @@ final class Turn
     public function cancel(): void
     {
         if (! $this->isDone()) {
-            ($this->cancel)();
+            $this->session->cancel();
         }
     }
 

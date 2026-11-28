@@ -209,7 +209,10 @@ final class FakeAgent
         return $messages;
     }
 
-    private function record(string $sessionId, SessionUpdate $update): void
+    /**
+     * @internal
+     */
+    public function record(string $sessionId, SessionUpdate $update): void
     {
         $this->histories[$sessionId][] = $update;
     }
@@ -263,7 +266,7 @@ final class FakeAgent
                 foreach ($request->prompt as $block) {
                     $this->record($request->sessionId, new SessionUpdate\UserMessageChunk($block));
                 }
-                $turn = new FakeTurn($request, $rpc, fn (SessionUpdate $update) => $this->record($request->sessionId, $update));
+                $turn = new FakeTurn($request, $rpc, $this);
                 $this->turns[$request->sessionId] = $turn;
                 try {
                     $stopReason = ($this->onPrompt)($turn);
