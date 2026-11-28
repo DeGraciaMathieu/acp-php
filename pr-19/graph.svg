@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 619" width="780" height="619" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<style>text{fill:#1e1b16}.sub{fill:#6b6357;font-size:11px}.hot{fill:#b5121b;font-size:11px;font-weight:600}.new{fill:#2f7d4f;font-size:11px;font-weight:600}.legend{fill:#6b6357;font-size:12px}.count{fill:#6b6357;font-size:14px;font-weight:600}</style>
+<defs>
+<marker id="arrow-edge" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#a8998a"/></marker>
+<marker id="arrow-added" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2f7d4f"/></marker>
+</defs>
+<rect width="780" height="619" fill="#ffffff"/>
+<text x="20" y="28" font-size="14" font-weight="600">0 classes touched out of 273 · 0 dependencies added</text>
+<g transform="translate(-26 -32)">
+<circle cx="150" cy="110" r="17.0" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="150" y="115.0" text-anchor="middle" class="count">1</text>
+<rect x="59.2" y="138.5" width="181.6" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="150" y="151.0" text-anchor="middle" font-size="12.5" font-weight="600">AgentProcess<tspan dx="6" class="sub">cohesion 0 %</tspan></text>
+<circle cx="390" cy="230" r="33.2" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="390" y="235.0" text-anchor="middle" class="count">11</text>
+<rect x="318.2" y="274.7" width="143.6" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="390" y="287.2" text-anchor="middle" font-size="12.5" font-weight="600">Client<tspan dx="6" class="sub">cohesion 18 %</tspan></text>
+<circle cx="330" cy="540" r="28.5" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="330" y="545.0" text-anchor="middle" class="count">7</text>
+<rect x="247.1" y="580.0" width="165.8" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="330" y="592.5" text-anchor="middle" font-size="12.5" font-weight="600">Exception<tspan dx="6" class="sub">cohesion 86 %</tspan></text>
+<circle cx="170" cy="390" r="28.5" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="170" y="395.0" text-anchor="middle" class="count">7</text>
+<rect x="109.3" y="430.0" width="121.4" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="170" y="442.5" text-anchor="middle" font-size="12.5" font-weight="600">Rpc<tspan dx="6" class="sub">cohesion 46 %</tspan></text>
+<circle cx="560" cy="380" r="119.3" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="560" y="385.0" text-anchor="middle" class="count">244</text>
+<rect x="488.2" y="510.8" width="143.6" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="560" y="523.3" text-anchor="middle" font-size="12.5" font-weight="600">Schema<tspan dx="6" class="sub">cohesion 62 %</tspan></text>
+<circle cx="700" cy="540" r="17.0" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="700" y="545.0" text-anchor="middle" class="count">1</text>
+<rect x="627.7" y="568.5" width="144.6" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="700" y="581.0" text-anchor="middle" font-size="12.5" font-weight="600">Support<tspan dx="6" class="sub">cohesion 0 %</tspan></text>
+<circle cx="630" cy="110" r="19.9" fill="#efe9dd" stroke="#1e1b16" stroke-width="1.2"/>
+<text x="630" y="115.0" text-anchor="middle" class="count">2</text>
+<rect x="557.7" y="141.4" width="144.6" height="17" rx="3" fill="#ffffff" opacity="0.92"/>
+<text x="630" y="153.9" text-anchor="middle" font-size="12.5" font-weight="600">Testing<tspan dx="6" class="sub">cohesion 3 %</tspan></text>
+</g>
+<circle cx="25" cy="597" r="5" fill="none" stroke="#b5121b" stroke-width="3"/>
+<text x="36" y="601" class="legend">classes changed</text>
+<circle cx="153" cy="597" r="5" fill="none" stroke="#2f7d4f" stroke-width="3"/>
+<text x="164" y="601" class="legend">classes added</text>
+<line x1="263" y1="597" x2="281" y2="597" stroke="#2f7d4f" stroke-width="3"/>
+<text x="287" y="601" class="legend">dependency added</text>
+<line x1="405" y1="597" x2="423" y2="597" stroke="#a8998a" stroke-width="3"/>
+<text x="429" y="601" class="legend">existing dependency touched</text>
+</svg>
