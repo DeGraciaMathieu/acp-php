@@ -159,7 +159,7 @@ final class ClientConnection
             $cancellation,
         ), 'result'));
 
-        return $this->sessions[$response->sessionId] = new Session($response->sessionId, $this, $response->modes);
+        return $this->sessions[$response->sessionId] = new Session($response->sessionId, $this->rpc, $response->modes);
     }
 
     /**
@@ -176,7 +176,7 @@ final class ClientConnection
         }
 
         // Registered before the request: the history arrives as notifications before the response.
-        $session = new Session($sessionId, $this);
+        $session = new Session($sessionId, $this->rpc);
         $this->sessions[$sessionId] = $session;
         $session->recordHistory(true);
 
@@ -221,14 +221,6 @@ final class ClientConnection
     public function closed(): Future
     {
         return $this->rpc->closed();
-    }
-
-    /**
-     * @internal
-     */
-    public function rpc(): Connection
-    {
-        return $this->rpc;
     }
 
     private function initialization(): InitializeResponse
