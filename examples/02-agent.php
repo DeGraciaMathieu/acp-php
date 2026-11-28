@@ -22,7 +22,7 @@ require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/_print.php';
 
 $dir = realpath($argv[1] ?? '') ?: exit("Usage: php examples/02-agent.php <dir> \"<prompt>\" [--agent=claude|codex] [--approve-all] [--timeout=SECONDS] [--verbose]\n");
-$prompt = $argv[2] ?? 'Liste les fichiers de ce dossier et résume ce que contient le projet en trois phrases.';
+$prompt = $argv[2] ?? 'List the files in this directory and summarise the project in three sentences.';
 $options = array_slice($argv, 3);
 $approveAll = in_array('--approve-all', $options, true);
 $verbose = in_array('--verbose', $options, true);
@@ -43,21 +43,21 @@ $agents = [
         'command' => 'claude-agent-acp',
         'env' => ['ANTHROPIC_API_KEY' => null],
         'askMode' => 'default',
-        'login' => 'Lance `claude`, puis /login, et réessaie.',
+        'login' => 'Run `claude`, then /login, and try again.',
     ],
     'codex' => [
         'command' => 'codex-acp',
         'env' => [],
         'askMode' => 'read-only',
-        'login' => 'Lance `codex login` ou définis OPENAI_API_KEY, et réessaie.',
+        'login' => 'Run `codex login` or set OPENAI_API_KEY, and try again.',
     ],
 ];
-$config = $agents[$agentName] ?? exit("Agent inconnu : {$agentName} (claude ou codex)\n");
+$config = $agents[$agentName] ?? exit("Unknown agent: {$agentName} (claude or codex)\n");
 
 $permissions = $approveAll ? new ApproveAll() : new CallbackPermissions(function (RequestPermissionRequest $request) {
     $kind = $request->toolCall->kind;
     $allowed = $kind === ToolKind::Read || $kind === ToolKind::Search;
-    echo "\n  🔐 Permission demandée : {$request->toolCall->title} → " . ($allowed ? 'acceptée' : 'refusée') . "\n";
+    echo "\n  🔐 Permission requested: {$request->toolCall->title} → " . ($allowed ? 'approved' : 'rejected') . "\n";
 
     return $allowed ? Outcome::approve($request) : Outcome::reject($request);
 });
@@ -74,7 +74,7 @@ $agent = AgentProcess::start(
 try {
     $client = $agent->connect(permissions: $permissions);
     $init = $client->initialize();
-    echo "Agent : {$init->agentInfo?->name} {$init->agentInfo?->version}\n";
+    echo "Agent: {$init->agentInfo?->name} {$init->agentInfo?->version}\n";
 
     $session = $client->newSession(cwd: $dir);
 
@@ -83,24 +83,24 @@ try {
     if (! $approveAll && $session->modes()?->currentModeId !== $config['askMode']) {
         $session->setMode($config['askMode']);
     }
-    echo "Session : {$session->id} (mode {$session->modes()?->currentModeId})\n\n";
+    echo "Session: {$session->id} (mode {$session->modes()?->currentModeId})\n\n";
 
     $turn = $session->prompt($prompt, $timeout !== null ? new TimeoutCancellation($timeout) : null);
     foreach ($turn->updates() as $update) {
         printUpdate($update);
     }
 
-    echo "\n\nFin du tour : " . json_encode($turn->stopReason()) . "\n";
+    echo "\n\nEnd of turn: " . json_encode($turn->stopReason()) . "\n";
     if ($agentName === 'claude') {
-        echo "Pour reprendre : php examples/03-resume.php {$dir} {$session->id} \"<prompt>\"\n";
+        echo "To resume: php examples/03-resume.php {$dir} {$session->id} \"<prompt>\"\n";
     }
 } catch (RpcError $e) {
-    echo "\nErreur de l'agent ({$e->getCode()}) : {$e->getMessage()}\n";
+    echo "\nAgent error ({$e->getCode()}): {$e->getMessage()}\n";
     if ($e->isAuthRequired()) {
         echo "→ {$config['login']}\n";
     }
 } catch (ConnectionClosed $e) {
-    echo "\nL'agent s'est arrêté. Ses derniers logs :\n  " . implode("\n  ", array_slice($agent->stderr(), -10)) . "\n";
+    echo "\nThe agent stopped. Its last logs:\n  " . implode("\n  ", array_slice($agent->stderr(), -10)) . "\n";
 } finally {
     $agent->stop();
 }

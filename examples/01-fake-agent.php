@@ -16,24 +16,24 @@ require __DIR__ . '/_print.php';
 
 $client = FakeAgent::create()
     ->onPrompt(function (FakeTurn $turn): null {
-        $turn->plan('Lire le CSS', 'Assombrir les couleurs');
+        $turn->plan('Read the CSS', 'Darken the colours');
         $turn->toolCall('call_1', 'npm test', ToolKind::Execute);
         $choice = $turn->requestPermission('call_1', 'npm test');
         $turn->updateToolCall('call_1', ToolCallStatus::Completed);
-        $turn->say("Permission : {$choice}. Thème passé en sombre.");
+        $turn->say("Permission: {$choice}. Theme switched to dark.");
 
         return null;
     })
     ->connect(permissions: new ApproveAll());
 
 $init = $client->initialize();
-echo "Agent : {$init->agentInfo?->name}\n";
+echo "Agent: {$init->agentInfo?->name}\n";
 
 $session = $client->newSession(cwd: getcwd() ?: '/tmp');
-$turn = $session->prompt('Passe le thème en sombre');
+$turn = $session->prompt('Switch the theme to dark');
 
 foreach ($turn->updates() as $update) {
     printUpdate($update);
 }
 
-echo "\n\nFin du tour : " . json_encode($turn->stopReason()) . "\n";
+echo "\n\nEnd of turn: " . json_encode($turn->stopReason()) . "\n";
