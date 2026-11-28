@@ -30,8 +30,10 @@ $agent = AgentProcess::start('claude-agent-acp', cwd: '/path/to/project');
 
 $client = $agent->connect(permissions: new CallbackPermissions(
     fn (RequestPermissionRequest $request) => match ($request->toolCall->kind) {
-        ToolKind::Execute => Outcome::reject($request),
-        default => Outcome::approve($request),
+        ToolKind::Read, ToolKind::Search => Outcome::approve($request),
+        ToolKind::Edit => Outcome::approve($request),
+        ToolKind::Execute, ToolKind::Fetch => Outcome::reject($request),
+        default => Outcome::reject($request),
     },
 ));
 $client->initialize();

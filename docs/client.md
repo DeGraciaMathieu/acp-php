@@ -57,7 +57,7 @@ Reading the updates is optional: they are buffered, and `text()`, `stopReason()`
 
 Before it edits a file or runs a command, the agent asks for permission. By default, the client refuses everything: the agent can read, but not act. Pass a `PermissionHandler` to `connect()` to decide.
 
-`CallbackPermissions` decides with a closure. It receives the request: `$request->toolCall` describes the action, with a `title` and a `kind` (`ToolKind::Read`, `Edit`, `Execute`…). `Outcome` builds the answer:
+`CallbackPermissions` decides with a closure. It receives the request: `$request->toolCall` describes the action, with a `title` and a `kind`. `Outcome` builds the answer. Here Claude may read, search and edit, but not run commands or go on the web:
 
 ```php
 use Acp\Client\Permission\{CallbackPermissions, Outcome};
@@ -65,11 +65,28 @@ use Acp\Schema\{RequestPermissionRequest, ToolKind};
 
 $client = $agent->connect(permissions: new CallbackPermissions(
     fn (RequestPermissionRequest $request) => match ($request->toolCall->kind) {
-        ToolKind::Execute => Outcome::reject($request),
-        default => Outcome::approve($request),
+        ToolKind::Read, ToolKind::Search => Outcome::approve($request),
+        ToolKind::Edit => Outcome::approve($request),
+        ToolKind::Execute, ToolKind::Fetch => Outcome::reject($request),
+        default => Outcome::reject($request),
     },
 ));
 ```
+
+The kinds Claude Code sends, and its tools behind them:
+
+| Kind | Claude Code tools |
+|---|---|
+| `ToolKind::Read` | Read |
+| `ToolKind::Edit` | Write, Edit |
+| `ToolKind::Search` | Grep, Glob |
+| `ToolKind::Execute` | Bash, so deleting or moving files too |
+| `ToolKind::Fetch` | WebFetch, WebSearch |
+| `ToolKind::SwitchMode` | EnterPlanMode, ExitPlanMode: approving a plan |
+| `ToolKind::Think` | subagents, tasks |
+| `ToolKind::Other` | skills, MCP tools, NotebookEdit |
+
+ACP also defines `ToolKind::Delete` and `ToolKind::Move`, which other agents may send. An agent may send a kind this SDK does not know yet: it then arrives as a string, and lands in `default`.
 
 - `Outcome::approve()` allows once, `Outcome::reject()` refuses once.
 - The agent also offers to allow or refuse for good: `Outcome::select($request, PermissionOptionKind::AllowAlways)`.
