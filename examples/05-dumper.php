@@ -20,13 +20,13 @@ $client = FakeAgent::create()
         $turn->toolCall('call_1', 'npm test', ToolKind::Execute);
         $turn->requestPermission('call_1', 'npm test');
         $turn->updateToolCall('call_1', ToolCallStatus::Completed, 'All green.');
-        $turn->say('Les tests passent.');
+        $turn->say('The tests pass.');
 
         return null;
     })
     ->connect(permissions: new ApproveAll(), onMessage: new Dumper());
 
 $client->initialize();
-$turn = $client->newSession(cwd: getcwd() ?: '/tmp')->prompt('Lance les tests');
+$turn = $client->newSession(cwd: getcwd() ?: '/tmp')->prompt('Run the tests');
 
 echo $turn->text() . "\n";

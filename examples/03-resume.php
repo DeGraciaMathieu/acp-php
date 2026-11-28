@@ -10,7 +10,7 @@ use Acp\AgentProcess;
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/_print.php';
 
-[$dir, $sessionId, $prompt] = [realpath($argv[1] ?? '') ?: '', $argv[2] ?? '', $argv[3] ?? 'Rappelle-moi ce que je t\'ai demandé tout à l\'heure.'];
+[$dir, $sessionId, $prompt] = [realpath($argv[1] ?? '') ?: '', $argv[2] ?? '', $argv[3] ?? 'Remind me what I asked you earlier.'];
 if ($dir === '' || $sessionId === '') {
     exit("Usage: php examples/03-resume.php <dir> <session-id> \"<prompt>\"\n");
 }
@@ -21,13 +21,13 @@ try {
     $client->initialize();
 
     $session = $client->loadSession($sessionId, cwd: $dir);
-    echo 'Historique rejoué : ' . count($session->history()) . " updates\n\n";
+    echo 'History replayed: ' . count($session->history()) . " updates\n\n";
 
     $turn = $session->prompt($prompt);
     foreach ($turn->updates() as $update) {
         printUpdate($update);
     }
-    echo "\n\nFin du tour : " . json_encode($turn->stopReason()) . "\n";
+    echo "\n\nEnd of turn: " . json_encode($turn->stopReason()) . "\n";
 } finally {
     $agent->stop();
 }

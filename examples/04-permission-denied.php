@@ -38,21 +38,21 @@ $permissions = new CallbackPermissions(function (RequestPermissionRequest $reque
 
 $client = FakeAgent::create()
     ->onPrompt(function (FakeTurn $turn): null {
-        $turn->toolCall('call_1', 'Modifier theme.css', ToolKind::Edit);
-        $turn->requestPermission('call_1', 'Modifier theme.css', ToolKind::Edit);
+        $turn->toolCall('call_1', 'Edit theme.css', ToolKind::Edit);
+        $turn->requestPermission('call_1', 'Edit theme.css', ToolKind::Edit);
         $turn->updateToolCall('call_1', ToolCallStatus::Completed);
 
         $turn->toolCall('call_2', 'git push', ToolKind::Execute);
         $choice = $turn->requestPermission('call_2', 'git push', ToolKind::Execute);
         if ($choice === 'reject') {
-            $turn->updateToolCall('call_2', ToolCallStatus::Failed, "Refusé par l'hôte");
-            $turn->say("Thème modifié. Je n'ai pas poussé : la commande a été refusée.");
+            $turn->updateToolCall('call_2', ToolCallStatus::Failed, 'Rejected by the host');
+            $turn->say('Theme updated. I did not push: the command was rejected.');
 
             return null;
         }
 
         $turn->updateToolCall('call_2', ToolCallStatus::Completed);
-        $turn->say('Thème modifié et poussé.');
+        $turn->say('Theme updated and pushed.');
 
         return null;
     })
@@ -60,7 +60,7 @@ $client = FakeAgent::create()
 
 $client->initialize();
 $session = $client->newSession(cwd: getcwd() ?: '/tmp');
-$turn = $session->prompt('Passe le thème en sombre et pousse');
+$turn = $session->prompt('Switch the theme to dark and push');
 
 foreach ($turn->updates() as $update) {
     match (true) {
@@ -68,12 +68,12 @@ foreach ($turn->updates() as $update) {
         $update instanceof SessionUpdate\ToolCall => print("\n  ⚙ {$update->title}\n"),
         // By the time the status changes, the host has already decided: merge on toolCallId.
         $update instanceof SessionUpdate\ToolCallUpdate => print(match ($decisions[$update->toolCallId] ?? null) {
-            'reject' => "    ✗ refusé par l'hôte\n",
+            'reject' => "    ✗ rejected by the host\n",
             null => '',
-            default => "    ✓ autorisé ({$decisions[$update->toolCallId]})\n",
+            default => "    ✓ allowed ({$decisions[$update->toolCallId]})\n",
         }),
         default => null,
     };
 }
 
-echo "\n\nFin du tour : " . json_encode($turn->stopReason()) . "\n";
+echo "\n\nEnd of turn: " . json_encode($turn->stopReason()) . "\n";
