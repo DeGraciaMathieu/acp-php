@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Acp\Client;
 
 use Acp\Exception\TurnInProgress;
+use Acp\Rpc\Connection;
 use Acp\Schema\AgentMethod;
 use Acp\Schema\CancelNotification;
 use Acp\Schema\ContentBlock;
@@ -41,7 +42,7 @@ final class Session
      */
     public function __construct(
         public readonly string $id,
-        private readonly ClientConnection $connection,
+        private readonly Connection $rpc,
         private ?SessionModeState $modes = null,
     ) {
     }
@@ -74,7 +75,7 @@ final class Session
             default => $prompt,
         };
 
-        $turn = new Turn($this);
+        $turn = new Turn($this->cancel(...));
         $this->turn = $turn;
 
         // A fired cancellation cancels the turn the ACP way (session/cancel): the agent
@@ -83,7 +84,7 @@ final class Session
 
         async(function () use ($turn, $blocks, $cancellation, $subscription): void {
             try {
-                $result = $this->connection->rpc()->request(
+                $result = $this->rpc->request(
                     AgentMethod::SessionPrompt->value,
                     new PromptRequest(sessionId: $this->id, prompt: $blocks),
                 );
@@ -106,7 +107,7 @@ final class Session
     public function cancel(): void
     {
         $this->turn?->markCancelled();
-        $this->connection->rpc()->notify(AgentMethod::SessionCancel->value, new CancelNotification($this->id));
+        $this->rpc->notify(AgentMethod::SessionCancel->value, new CancelNotification($this->id));
     }
 
     public function currentTurn(): ?Turn
@@ -116,7 +117,7 @@ final class Session
 
     public function setMode(string $modeId, ?Cancellation $cancellation = null): void
     {
-        $this->connection->rpc()->request(
+        $this->rpc->request(
             AgentMethod::SessionSetMode->value,
             new SetSessionModeRequest(sessionId: $this->id, modeId: $modeId),
             $cancellation,
