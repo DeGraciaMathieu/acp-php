@@ -4,8 +4,8 @@
         "Testing":      { "position": [630, 110] },
         "Client":       { "position": [390, 230] },
         "Rpc":          { "position": [170, 390] },
-        "Schema":       { "position": [560, 380] },
         "Exception":    { "position": [330, 540] },
         "Support":      { "position": [700, 540] }
-    }
+    },
+    "exclude": ["Schema"]
 }
