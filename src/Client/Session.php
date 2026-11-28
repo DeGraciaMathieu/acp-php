@@ -25,7 +25,7 @@ use function Amp\async;
 /**
  * A conversation with the agent, with its own context and history.
  */
-final class Session
+final class Session implements TurnOwner
 {
     private ?Turn $turn = null;
 
