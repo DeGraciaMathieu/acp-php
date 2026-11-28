@@ -27,7 +27,6 @@ use Acp\Schema\ToolKind;
 use Acp\Schema\WriteTextFileRequest;
 use Acp\Support\Cast;
 use Amp\DeferredFuture;
-use Closure;
 
 /**
  * What a FakeAgent's prompt handler uses to play its part of a turn.
@@ -41,13 +40,11 @@ final class FakeTurn
 
     /**
      * @internal created by FakeAgent
-     *
-     * @param Closure(SessionUpdate): void $record Records an update in the session's history.
      */
     public function __construct(
         public readonly PromptRequest $request,
         private readonly Connection $rpc,
-        private readonly Closure $record,
+        private readonly FakeAgent $agent,
     ) {
         $this->cancellation = new DeferredFuture();
     }
@@ -106,7 +103,7 @@ final class FakeTurn
 
     public function send(SessionUpdate $update): void
     {
-        ($this->record)($update);
+        $this->agent->record($this->sessionId(), $update);
         $this->rpc->notify(ClientMethod::SessionUpdate->value, new SessionNotification($this->sessionId(), $update));
     }
 
