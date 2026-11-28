@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Acp\Client;
+namespace Acp\Client\Session;
 
 use Acp\Schema\SessionUpdate;
 use Amp\Cancellation;

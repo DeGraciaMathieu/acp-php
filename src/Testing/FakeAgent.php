@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Acp\Testing;
 
 use Acp\Client\ClientConnection;
-use Acp\Client\FileSystemHandler;
-use Acp\Client\PermissionHandler;
+use Acp\Client\FileSystem\FileSystemHandler;
+use Acp\Client\Permission\PermissionHandler;
 use Acp\Exception\RpcError;
 use Acp\Rpc\Connection;
 use Acp\Rpc\Direction;

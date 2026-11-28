@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Acp\Client;
 
+use Acp\Client\FileSystem\FileSystemHandler;
 use Acp\Client\Permission\Outcome;
+use Acp\Client\Permission\PermissionHandler;
 use Acp\Client\Permission\RejectAll;
+use Acp\Client\Session\Session;
 use Acp\Exception\CapabilityNotSupported;
 use Acp\Exception\ConnectionClosed;
 use Acp\Exception\RpcError;

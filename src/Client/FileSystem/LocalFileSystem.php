@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Acp\Client\FileSystem;
 
-use Acp\Client\FileSystemHandler;
 use Acp\Exception\RpcError;
 use Acp\Schema\ErrorCode;
 use Acp\Schema\ReadTextFileRequest;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Acp\Client\Permission;
 
-use Acp\Client\PermissionHandler;
 use Acp\Schema\RequestPermissionRequest;
 use Acp\Schema\RequestPermissionResponse;
 use Amp\Cancellation;

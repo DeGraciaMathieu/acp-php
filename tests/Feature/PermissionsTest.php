@@ -7,7 +7,7 @@ namespace Acp\Tests\Feature;
 use Acp\Client\Permission\ApproveAll;
 use Acp\Client\Permission\CallbackPermissions;
 use Acp\Client\Permission\Outcome;
-use Acp\Client\PermissionHandler;
+use Acp\Client\Permission\PermissionHandler;
 use Acp\Exception\RpcError;
 use Acp\Schema\ErrorCode;
 use Acp\Schema\RequestPermissionRequest;
